@@ -158,9 +158,15 @@ class MiniSom(object):
         self._random_generator = random.RandomState(random_seed)
 
         self._lookuptable = lookuptable
-        self._mnemonic_shape = mnemonic_shape.copy()
-        self._mnemonic_shape_inf = mnemonic_shape.copy()
-        self._mnemonic_shape_inf[where(self._mnemonic_shape_inf == 0)] = inf
+        if (mnemonic_shape is not None):
+            self._mnemonic_shape = mnemonic_shape.copy()
+            self._mnemonic_shape_inf = mnemonic_shape.copy()
+            self._mnemonic_shape_inf[where(self._mnemonic_shape_inf == 0)] = inf
+
+        self._weights = self._random_generator.rand(x, y, input_len)*2-1
+        self._weights /= linalg.norm(self._weights, axis=-1, keepdims=True)
+        if (mnemonic_shape is not None):
+            self._weights *= self._mnemonic_shape.repeat(self._weights.shape[2]).reshape(*self._mnemonic_shape.shape, -1)
 
         self._learning_rate = learning_rate
         self._sigma = sigma
@@ -168,7 +174,7 @@ class MiniSom(object):
         # random initialization
         self._weights = self._random_generator.rand(x, y, input_len)*2-1
         self._weights /= linalg.norm(self._weights, axis=-1, keepdims=True)
-        if (self._mnemonic_shape is not None):
+        if (mnemonic_shape is not None):
             self._weights *= self._mnemonic_shape.repeat(self._weights.shape[2]).reshape(*self._mnemonic_shape.shape, -1)
 
         self._activation_map = zeros((x, y))
@@ -273,7 +279,6 @@ class MiniSom(object):
 
     def _lookuptable_distance(self, c, sigma):
         d = 2 * sigma * sigma
-        #return self._lookuptable[(c[1], c[0])] / d
         return self._lookuptable[(c[0], c[1])] / d
 
     def _mexican_hat(self, c, sigma):
