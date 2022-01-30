@@ -1,5 +1,6 @@
 from math import sqrt
 
+import numpy as np
 from numpy import (array, unravel_index, nditer, linalg, random, subtract, max,
                    power, exp, pi, zeros, ones, arange, outer, meshgrid, dot,
                    logical_and, mean, std, cov, argsort, linspace, transpose,
@@ -277,9 +278,12 @@ class MiniSom(object):
         ay = exp(-power(self._yy-self._yy.T[c], 2)/d)
         return (ax * ay).T  # the external product gives a matrix
 
+    #Added code: Function returning a neighborhood matrix a winner c based on adjacency-matrix (lookuptable)
     def _lookuptable_distance(self, c, sigma):
         d = 2 * sigma * sigma
-        return self._lookuptable[(c[0], c[1])] / d
+        cur_adjacency_mat = self._lookuptable[(c[0], c[1])].copy()
+        cur_adjacency_mat[np.nonzero(cur_adjacency_mat)] = exp(-power(cur_adjacency_mat[np.nonzero(cur_adjacency_mat)] - 1, 2) / d)
+        return cur_adjacency_mat
 
     def _mexican_hat(self, c, sigma):
         """Mexican hat centered in c."""
